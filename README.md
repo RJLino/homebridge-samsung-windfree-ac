@@ -92,6 +92,24 @@ Here is a sample configuration for Personal Access Token authentication:
 - `heat`
 - `auto`
 
+## Features
+
+Beyond the thermostat (power, mode, target/current temperature), the plugin can expose:
+
+| Feature | HomeKit representation | Config option | Default |
+|---------|------------------------|---------------|---------|
+| Relative humidity | `CurrentRelativeHumidity` on the thermostat | always on | — |
+| Fan control (speed + swing) | `Fanv2` service: `RotationSpeed` (low/medium/high/turbo), `TargetFanState` (auto/manual), `SwingMode` | `OptionalFanControl` | `true` |
+| Swing direction | Extra switches: `Swing Vertical`, `Swing Horizontal` | `OptionalSwingDirectionSwitches` | `true` |
+| Auto-cleaning | `Auto Clean` switch | `OptionalAutoCleanSwitch` | `true` |
+| Auto-cleaning progress | `Auto Clean Progress` read-only sensor (0–100%, exposed as a humidity-style tile) | `OptionalAutoCleanProgress` | `true` |
+| WindFree | `WindFree` switch | `OptionalWindFreeSwitch` | `false` |
+| Display light | `Display` switch | `OptionalDisplaySwitch` | `false` |
+
+### Notes
+- **Humidity, fan speed, and swing** are read from the device (`relativeHumidityMeasurement`, `airConditionerFanMode`, `fanOscillationMode`).
+- **Display light** is controlled through the `execute`/OCF resource (`Light_On`/`Light_Off`). These units do not report the display's state back, so the `Display` switch is **optimistic**: it reflects the last command sent, not necessarily changes made from the physical remote.
+
 ## Supported Optional Modes
 - `windFree`
 > To enable this mode, you need to select the `windFree` option in the plugin settings.
