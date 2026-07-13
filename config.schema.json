@@ -78,6 +78,30 @@
         "type": "boolean",
         "required": false,
         "default": false
+      },
+      "OptionalFanControl": {
+        "title": "Expose fan control (speed + swing)",
+        "type": "boolean",
+        "required": false,
+        "default": true
+      },
+      "OptionalSwingDirectionSwitches": {
+        "title": "Expose extra switches for vertical/horizontal swing direction",
+        "type": "boolean",
+        "required": false,
+        "default": true
+      },
+      "OptionalAutoCleanSwitch": {
+        "title": "Expose a switch for auto-cleaning mode",
+        "type": "boolean",
+        "required": false,
+        "default": true
+      },
+      "OptionalAutoCleanProgress": {
+        "title": "Expose auto-cleaning progress (as a read-only humidity-style sensor)",
+        "type": "boolean",
+        "required": false,
+        "default": true
       }
     }
   },
