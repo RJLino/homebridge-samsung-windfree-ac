@@ -22,7 +22,7 @@ export class HomebridgePlatform implements DynamicPlatformPlugin {
   ) {
     this.log.debug('Finished initializing platform:', this.config.name);
 
-    this.authService = new AuthService(this.config, this.log);
+    this.authService = new AuthService(this.config, this.log, this.api.user.configPath());
 
     this.api.on('didFinishLaunching', () => {
       log.debug('Executed didFinishLaunching callback');

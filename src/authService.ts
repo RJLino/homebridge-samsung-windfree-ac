@@ -21,12 +21,18 @@ export interface AuthConfig {
 
 export class AuthService implements RefreshTokenStore {
   private authData: AuthData | undefined;
-  private configPath = process.env.UIX_CONFIG_PATH || path.join('./', 'config.json');
+  // Absolute path to config.json. In child-bridge setups UIX_CONFIG_PATH may be unset and the
+  // cwd is not the storage dir, so a relative './config.json' writes to the wrong place and the
+  // rotated refresh token is lost. The platform passes api.user.configPath() to avoid that.
+  private readonly configPath: string;
 
   constructor(
     public readonly config: PlatformConfig,
     private readonly log: Logger,
-  ) {}
+    configPath?: string,
+  ) {
+    this.configPath = configPath || process.env.UIX_CONFIG_PATH || path.join('./', 'config.json');
+  }
 
   /**
    * Get a valid access token, refreshing if necessary
