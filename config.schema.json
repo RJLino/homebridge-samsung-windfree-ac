@@ -98,7 +98,7 @@
         "default": true
       },
       "OptionalAutoCleanProgress": {
-        "title": "Expose auto-cleaning progress (as a read-only humidity-style sensor)",
+        "title": "Expose a separate Auto Clean accessory (active-cleaning sensor + progress %)",
         "type": "boolean",
         "required": false,
         "default": true

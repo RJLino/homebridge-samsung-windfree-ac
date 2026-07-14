@@ -131,7 +131,9 @@ export class AirConditionerPlatformAccessory {
     this.setupFanService();
     this.setupSwingDirectionSwitches();
     this.setupAutoCleanSwitch();
-    this.setupAutoCleanProgress();
+    // O progresso da auto-limpeza passou para um acessorio separado (tile proprio);
+    // limpar o servico antigo caso tenha ficado em cache neste acessorio.
+    this.removeServiceByName('Auto Clean Progress');
   }
 
   // ─── Setup dos servicos opcionais (add/remove conforme config) ───────────────
@@ -255,26 +257,6 @@ export class AirConditionerPlatformAccessory {
         .onSet(this.handleAutoCleanSet.bind(this));
     } else {
       this.removeServiceByName('Auto Clean');
-    }
-  }
-
-  private setupAutoCleanProgress(): void {
-    // O HomeKit nao tem caracteristica de "progresso"; reaproveitamos um HumiditySensor
-    // read-only para mostrar 0-100% da auto-limpeza.
-    const enabled = this.platform.config.OptionalAutoCleanProgress !== false;
-    this.platform.log.debug('Optional Auto Clean Progress: ', enabled);
-    if (enabled) {
-      const service =
-        this.accessory.getService('Auto Clean Progress') ||
-        this.accessory.addService(
-          this.platform.Service.HumiditySensor, 'Auto Clean Progress', `autoclean-progress-${this.deviceId}`);
-
-      this.nameService(service, 'Auto Clean Progress');
-
-      service.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
-        .onGet(this.handleAutoCleanProgressGet.bind(this));
-    } else {
-      this.removeServiceByName('Auto Clean Progress');
     }
   }
 
@@ -641,12 +623,6 @@ export class AirConditionerPlatformAccessory {
       command: 'setAutoCleaningMode',
       arguments: [value ? SwitchState.On : SwitchState.Off],
     }, 'AutoClean');
-  }
-
-  private async handleAutoCleanProgressGet(): Promise<CharacteristicValue> {
-    const deviceStatus = await this.getDeviceStatus();
-    const progress = deviceStatus['custom.autoCleaningMode']?.progress?.value;
-    return typeof progress === 'number' ? progress : 0;
   }
 
   // ─── Infra: status com cache + envio de comandos ────────────────────────────────

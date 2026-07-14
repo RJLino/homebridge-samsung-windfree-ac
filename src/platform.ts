@@ -2,6 +2,7 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { AirConditionerPlatformAccessory } from './platformAccessory';
+import { AutoCleanAccessory } from './autoCleanAccessory';
 import { AuthService } from './authService';
 import { Component, SmartThingsClient } from '@smartthings/core-sdk';
 import { Authenticator} from '@smartthings/core-sdk';
@@ -54,8 +55,6 @@ export class HomebridgePlatform implements DynamicPlatformPlugin {
     }
 
     for (const device of devices) {
-      const uuid = this.api.hap.uuid.generate(device.deviceId);
-
       const deviceComponents: Component[] = device.components ?? [];
 
       const capabilities = deviceComponents[0]?.capabilities
@@ -70,24 +69,41 @@ export class HomebridgePlatform implements DynamicPlatformPlugin {
         continue;
       }
 
-      const existingAccessory = this.accessories.find(accessory => accessory.UUID === uuid);
+      // Acessorio principal do AC (thermostat + switches + ventoinha)
+      const mainAccessory = this.getOrCreateAccessory(device, device.deviceId, label);
+      new AirConditionerPlatformAccessory(this, mainAccessory, capabilities, client);
 
-      if (existingAccessory) {
-        this.log.info('Restoring existing accessory from cache:', existingAccessory.displayName);
-
-        new AirConditionerPlatformAccessory(this, existingAccessory, capabilities, client);
+      // Acessorio SEPARADO da auto-limpeza (tile proprio), so se o device a suportar e nao estiver desativado
+      const autoCleanEnabled = this.config.OptionalAutoCleanProgress !== false;
+      const autoCleanUuid = this.api.hap.uuid.generate(`${device.deviceId}-autoclean`);
+      if (autoCleanEnabled && capabilities.includes('custom.autoCleaningMode')) {
+        const autoCleanAccessory = this.getOrCreateAccessory(device, `${device.deviceId}-autoclean`, `${label} Auto Clean`);
+        new AutoCleanAccessory(this, autoCleanAccessory, client);
       } else {
-        this.log.info('Adding new accessory:', label);
-
-        const accessory = new this.api.platformAccessory(label, uuid);
-
-        accessory.context.device = device;
-
-        new AirConditionerPlatformAccessory(this, accessory, capabilities, client);
-
-        this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+        const stale = this.accessories.find(a => a.UUID === autoCleanUuid);
+        if (stale) {
+          this.log.info('Removing Auto Clean accessory:', stale.displayName);
+          this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [stale]);
+        }
       }
     }
+  }
+
+  private getOrCreateAccessory(device: Device, idSeed: string, displayName: string): PlatformAccessory {
+    const uuid = this.api.hap.uuid.generate(idSeed);
+    const existing = this.accessories.find(accessory => accessory.UUID === uuid);
+
+    if (existing) {
+      this.log.info('Restoring existing accessory from cache:', existing.displayName);
+      return existing;
+    }
+
+    this.log.info('Adding new accessory:', displayName);
+    const accessory = new this.api.platformAccessory(displayName, uuid);
+    accessory.context.device = device;
+    this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+    this.accessories.push(accessory);
+    return accessory;
   }
 
   doesDeviceSupportCapabilities(capabilities: string[]): boolean {

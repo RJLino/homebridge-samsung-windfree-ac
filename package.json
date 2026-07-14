@@ -1,7 +1,7 @@
 {
   "displayName": "Homebridge Samsung WindFree AC (vamm-fork)",
   "name": "@vamm-fork/homebridge-samsung-windfree-ac",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "Homebridge plugin for Samsung WindFree AC with support for OAuth2 (not required to change token everyday). Fork of https://github.com/qubiack/homebridge-samsung-windfree-ac/ with display, humidity, fan and auto-clean support.",
   "license": "Apache-2.0",
   "private": false,
