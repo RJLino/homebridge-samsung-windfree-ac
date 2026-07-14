@@ -98,7 +98,7 @@
         "default": true
       },
       "OptionalAutoCleanProgress": {
-        "title": "Expose a separate Auto Clean accessory (active-cleaning sensor + progress %)",
+        "title": "Expose a separate Auto Clean accessory (live progress %)",
         "type": "boolean",
         "required": false,
         "default": true
