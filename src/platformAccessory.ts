@@ -102,7 +102,8 @@ export class AirConditionerPlatformAccessory {
       this.accessory.getService(this.platform.Service.Thermostat) ||
       this.accessory.addService(this.platform.Service.Thermostat);
 
-    this.service.setCharacteristic(this.platform.Characteristic.Name, accessory.context.device.label);
+    this.nameService(this.service, accessory.context.device.label);
+    this.service.setPrimaryService(true);
 
     this.service.getCharacteristic(this.platform.Characteristic.TemperatureDisplayUnits)
       .onGet(this.handleTemperatureDisplayUnitsGet.bind(this));
@@ -144,7 +145,7 @@ export class AirConditionerPlatformAccessory {
       this.accessory.getService('WindFree') ||
       this.accessory.addService(this.platform.Service.Switch, 'WindFree', `windfree-${this.deviceId}`);
 
-      windFreeSwitchService.setCharacteristic(this.platform.Characteristic.Name, 'WindFree');
+      this.nameService(windFreeSwitchService, 'WindFree');
 
       windFreeSwitchService.getCharacteristic(this.platform.Characteristic.On)
         .onGet(this.handleWindFreeSwitchGet.bind(this))
@@ -163,7 +164,7 @@ export class AirConditionerPlatformAccessory {
       this.accessory.getService('Display') ||
       this.accessory.addService(this.platform.Service.Switch, 'Display', `display-${this.deviceId}`);
 
-      displaySwitchService.setCharacteristic(this.platform.Characteristic.Name, 'Display');
+      this.nameService(displaySwitchService, 'Display');
 
       displaySwitchService.getCharacteristic(this.platform.Characteristic.On)
         .onGet(this.handleDisplaySwitchGet.bind(this))
@@ -188,7 +189,7 @@ export class AirConditionerPlatformAccessory {
       this.accessory.getService('Fan') ||
       this.accessory.addService(this.platform.Service.Fanv2, 'Fan', `fan-${this.deviceId}`);
 
-    fanService.setCharacteristic(this.platform.Characteristic.Name, 'Fan');
+    this.nameService(fanService, 'Fan');
 
     fanService.getCharacteristic(this.platform.Characteristic.Active)
       .onGet(this.handleFanActiveGet.bind(this))
@@ -230,7 +231,7 @@ export class AirConditionerPlatformAccessory {
       this.accessory.getService(name) ||
       this.accessory.addService(this.platform.Service.Switch, name, subtype);
 
-    service.setCharacteristic(this.platform.Characteristic.Name, name);
+    this.nameService(service, name);
 
     service.getCharacteristic(this.platform.Characteristic.On)
       .onGet(async () => (await this.getOscillationMode()) === mode)
@@ -247,7 +248,7 @@ export class AirConditionerPlatformAccessory {
         this.accessory.getService('Auto Clean') ||
         this.accessory.addService(this.platform.Service.Switch, 'Auto Clean', `autoclean-${this.deviceId}`);
 
-      service.setCharacteristic(this.platform.Characteristic.Name, 'Auto Clean');
+      this.nameService(service, 'Auto Clean');
 
       service.getCharacteristic(this.platform.Characteristic.On)
         .onGet(this.handleAutoCleanGet.bind(this))
@@ -268,7 +269,7 @@ export class AirConditionerPlatformAccessory {
         this.accessory.addService(
           this.platform.Service.HumiditySensor, 'Auto Clean Progress', `autoclean-progress-${this.deviceId}`);
 
-      service.setCharacteristic(this.platform.Characteristic.Name, 'Auto Clean Progress');
+      this.nameService(service, 'Auto Clean Progress');
 
       service.getCharacteristic(this.platform.Characteristic.CurrentRelativeHumidity)
         .onGet(this.handleAutoCleanProgressGet.bind(this));
@@ -283,6 +284,17 @@ export class AirConditionerPlatformAccessory {
       this.platform.log.debug('Removing service:', name);
       this.accessory.removeService(service);
     }
+  }
+
+  // O Apple Home ignora o caracteristico Name em servicos secundarios e mostra o nome do
+  // acessorio. Definir ConfiguredName faz com que cada tile apareca com o seu proprio nome.
+  private nameService(service: Service, name: string): void {
+    const { Characteristic } = this.platform;
+    service.setCharacteristic(Characteristic.Name, name);
+    if (!service.testCharacteristic(Characteristic.ConfiguredName)) {
+      service.addOptionalCharacteristic(Characteristic.ConfiguredName);
+    }
+    service.setCharacteristic(Characteristic.ConfiguredName, name);
   }
 
   // ─── WindFree ────────────────────────────────────────────────────────────────
