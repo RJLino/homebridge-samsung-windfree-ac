@@ -101,8 +101,7 @@ Beyond the thermostat (power, mode, target/current temperature), the plugin can 
 | Relative humidity | `CurrentRelativeHumidity` on the thermostat | always on | — |
 | Fan control (speed + swing) | `Fanv2` service: `RotationSpeed` (low/medium/high/turbo), `TargetFanState` (auto/manual), `SwingMode` | `OptionalFanControl` | `true` |
 | Swing direction | Extra switches: `Swing Vertical`, `Swing Horizontal` | `OptionalSwingDirectionSwitches` | `true` |
-| Auto-cleaning | `Auto Clean` switch | `OptionalAutoCleanSwitch` | `true` |
-| Auto-cleaning progress | `Auto Clean Progress` read-only sensor (0–100%, exposed as a humidity-style tile) | `OptionalAutoCleanProgress` | `true` |
+| Auto-cleaning | `Auto Clean` switch (enables/disables the auto-clean setting) | `OptionalAutoCleanSwitch` | `true` |
 | WindFree | `WindFree` switch | `OptionalWindFreeSwitch` | `false` |
 | Display light | `Display` switch | `OptionalDisplaySwitch` | `false` |
 

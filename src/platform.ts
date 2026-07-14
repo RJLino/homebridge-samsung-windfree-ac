@@ -2,7 +2,6 @@ import { API, DynamicPlatformPlugin, Logger, PlatformAccessory, PlatformConfig, 
 
 import { PLATFORM_NAME, PLUGIN_NAME } from './settings';
 import { AirConditionerPlatformAccessory } from './platformAccessory';
-import { AutoCleanAccessory } from './autoCleanAccessory';
 import { AuthService } from './authService';
 import { Component, SmartThingsClient } from '@smartthings/core-sdk';
 import { Authenticator} from '@smartthings/core-sdk';
@@ -73,18 +72,14 @@ export class HomebridgePlatform implements DynamicPlatformPlugin {
       const mainAccessory = this.getOrCreateAccessory(device, device.deviceId, label);
       new AirConditionerPlatformAccessory(this, mainAccessory, capabilities, client);
 
-      // Acessorio SEPARADO da auto-limpeza (tile proprio), so se o device a suportar e nao estiver desativado
-      const autoCleanEnabled = this.config.OptionalAutoCleanProgress !== false;
+      // A auto-limpeza fica so com o switch da definicao (no acessorio do AC). Remover o
+      // acessorio de progresso separado, caso tenha ficado em cache de versoes anteriores
+      // (o sensor de humidade poluia a humidade da sala no Apple Home).
       const autoCleanUuid = this.api.hap.uuid.generate(`${device.deviceId}-autoclean`);
-      if (autoCleanEnabled && capabilities.includes('custom.autoCleaningMode')) {
-        const autoCleanAccessory = this.getOrCreateAccessory(device, `${device.deviceId}-autoclean`, `${label} Auto Clean`);
-        new AutoCleanAccessory(this, autoCleanAccessory, client);
-      } else {
-        const stale = this.accessories.find(a => a.UUID === autoCleanUuid);
-        if (stale) {
-          this.log.info('Removing Auto Clean accessory:', stale.displayName);
-          this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [stale]);
-        }
+      const staleAutoClean = this.accessories.find(a => a.UUID === autoCleanUuid);
+      if (staleAutoClean) {
+        this.log.info('Removing Auto Clean progress accessory:', staleAutoClean.displayName);
+        this.api.unregisterPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [staleAutoClean]);
       }
     }
   }
